@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Product {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String
+  price        Decimal
+  category     String
+  wood         String?
+  size         String?
+  managerLink  String
+  coverImage   String
+  createdAt    DateTime @default(now())
+}
+
+model Gallery {
+  id        Int      @id @default(autoincrement())
+  title     String?
+  image     String
+  createdAt DateTime @default(now())
+}
+
+model Settings {
+  id          Int    @id @default(1)
+  phone       String?
+  telegram    String?
+  whatsapp    String?
+  email       String?
+  instagram   String?
+}
