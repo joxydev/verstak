@@ -572,3 +572,53 @@ p {
     padding-block: 28px;
   }
 }
+
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.telegram-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  max-width: 140px;
+  padding: 5px 10px;
+  overflow: hidden;
+  border: 1px solid var(--color-border, #d8c7b3);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.telegram-status--browser {
+  background: #fffaf3;
+  color: #76695e;
+}
+
+.telegram-status--telegram {
+  background: #7a5235;
+  border-color: #7a5235;
+  color: #fffaf3;
+}
+
+html[data-telegram='true'],
+html[data-telegram='true'] body,
+html[data-telegram='true'] #root {
+  min-height: var(--tg-viewport-stable-height, 100vh);
+}
+
+@media (max-width: 680px) {
+  .site-header__actions {
+    gap: 10px;
+  }
+
+  .telegram-status {
+    max-width: 90px;
+  }
+}

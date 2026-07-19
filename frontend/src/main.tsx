@@ -1,10 +1,20 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+
 import App from './App';
+import { TelegramProvider } from './telegram/TelegramProvider';
+
 import './index.css';
 
 const rootElement = document.getElementById('root');
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
 
 function showFatalError(error: unknown) {
   const message =
@@ -18,19 +28,22 @@ function showFatalError(error: unknown) {
     <main style="
       min-height:100vh;
       padding:24px;
-      background:#f4f0e9;
-      color:#28231e;
+      background:#f4efe7;
+      color:#2d241d;
       font-family:system-ui,sans-serif;
     ">
-      <h1 style="font-size:24px">Ошибка запуска frontend</h1>
+      <h1 style="font-size:24px">
+        Ошибка запуска frontend
+      </h1>
+
       <pre style="
         white-space:pre-wrap;
         overflow-wrap:anywhere;
         padding:16px;
-        border:1px solid #d8c8b8;
+        border:1px solid #d8c7b3;
         border-radius:12px;
-        background:white;
-      ">${message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+        background:#fffaf3;
+      ">${escapeHtml(message)}</pre>
     </main>
   `;
 }
@@ -50,9 +63,11 @@ try {
 
   createRoot(rootElement).render(
     <StrictMode>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <TelegramProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </TelegramProvider>
     </StrictMode>,
   );
 } catch (error) {
