@@ -1,36 +1,60 @@
-import axios from 'axios';
+import type {
+  CurrentUserResponse,
+  TelegramAuthResponse,
+} from '../types/auth';
 
-import type { TelegramAuthResponse } from '../types/auth';
+import {
+  apiClient,
+  assertApiConfigured,
+} from './client';
 
-const apiUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '');
-
-const authApi = axios.create({
-  baseURL: apiUrl,
-  timeout: 15000,
-  headers: {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-  },
-});
+import {
+  removeAccessToken,
+  saveAccessToken,
+} from './token';
 
 export async function authenticateTelegram(
   initData: string,
 ): Promise<TelegramAuthResponse> {
-  if (!apiUrl) {
-    throw new Error('VITE_API_URL is not configured');
-  }
+  assertApiConfigured();
 
   if (!initData) {
-    throw new Error('Telegram initData is missing');
+    throw new Error(
+      'Telegram initData is missing',
+    );
   }
 
   const response =
-    await authApi.post<TelegramAuthResponse>(
+    await apiClient.post<TelegramAuthResponse>(
       '/auth/telegram',
       {
         initData,
       },
     );
 
+  if (!response.data.accessToken) {
+    throw new Error(
+      'Backend did not return an access token',
+    );
+  }
+
+  saveAccessToken(response.data.accessToken);
+
   return response.data;
+}
+
+export async function getCurrentUser():
+Promise<CurrentUserResponse> {
+  assertApiConfigured();
+
+  const response =
+    await apiClient.get<CurrentUserResponse>(
+      '/auth/me',
+    );
+
+  return response.data;
+}
+
+export function logout(): void {
+  removeAccessToken();
 }

@@ -7,7 +7,13 @@ import {
   type ReactNode,
 } from 'react';
 
-import { authenticateTelegram } from '../api/auth';
+import {
+  authenticateTelegram,
+  getCurrentUser,
+  logout as clearAuthSession,
+} from '../api/auth';
+
+import { hasAccessToken } from '../api/token';
 
 import type {
   AuthUser,
@@ -44,6 +50,7 @@ interface TelegramContextValue {
   role: UserRole | null;
   authStatus: AuthStatus;
   authError: string | null;
+  logout: () => void;
 }
 
 const TelegramContext =
@@ -86,17 +93,54 @@ export function TelegramProvider({
 
       setWebApp(initializedWebApp);
       setIsReady(true);
+      setAuthStatus('loading');
+      setAuthError(null);
 
       const initData =
         initializedWebApp?.initData ?? '';
 
+      if (hasAccessToken()) {
+        try {
+          const response =
+            await getCurrentUser();
+
+          if (!isActive) {
+            return;
+          }
+
+          setUser(response.user);
+          setAuthStatus('authenticated');
+
+          console.info(
+            'JWT session restored',
+            {
+              userId: response.user.id,
+              telegramId:
+                response.user.telegramId,
+              role: response.user.role,
+            },
+          );
+
+          return;
+        } catch (error) {
+          console.warn(
+            'JWT session restoration failed:',
+            error,
+          );
+
+          clearAuthSession();
+        }
+      }
+
       if (!initData) {
+        if (!isActive) {
+          return;
+        }
+
+        setUser(null);
         setAuthStatus('browser');
         return;
       }
-
-      setAuthStatus('loading');
-      setAuthError(null);
 
       try {
         const response =
@@ -113,7 +157,8 @@ export function TelegramProvider({
           'Telegram backend authentication completed',
           {
             userId: response.user.id,
-            telegramId: response.user.telegramId,
+            telegramId:
+              response.user.telegramId,
             role: response.user.role,
           },
         );
@@ -132,6 +177,7 @@ export function TelegramProvider({
           error,
         );
 
+        setUser(null);
         setAuthError(message);
         setAuthStatus('error');
       }
@@ -143,6 +189,18 @@ export function TelegramProvider({
       isActive = false;
     };
   }, []);
+
+  const handleLogout = () => {
+    clearAuthSession();
+    setUser(null);
+
+    const initData =
+      webApp?.initData ?? '';
+
+    setAuthStatus(
+      initData ? 'idle' : 'browser',
+    );
+  };
 
   const value =
     useMemo<TelegramContextValue>(() => {
@@ -171,6 +229,7 @@ export function TelegramProvider({
         role,
         authStatus,
         authError,
+        logout: handleLogout,
       };
     }, [
       webApp,
@@ -187,7 +246,8 @@ export function TelegramProvider({
   );
 }
 
-export function useTelegram(): TelegramContextValue {
+export function useTelegram():
+TelegramContextValue {
   const context =
     useContext(TelegramContext);
 
