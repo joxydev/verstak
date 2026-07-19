@@ -6,6 +6,27 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  USER
+  ADMIN
+  OWNER
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  telegramId   String   @unique
+  username     String?
+  firstName    String
+  lastName     String?
+  photoUrl     String?
+  languageCode String?
+  isPremium    Boolean  @default(false)
+  role         UserRole @default(USER)
+  lastLoginAt  DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model Product {
   id           Int      @id @default(autoincrement())
   title        String
@@ -27,10 +48,10 @@ model Gallery {
 }
 
 model Settings {
-  id          Int    @id @default(1)
-  phone       String?
-  telegram    String?
-  whatsapp    String?
-  email       String?
-  instagram   String?
+  id        Int     @id @default(1)
+  phone     String?
+  telegram  String?
+  whatsapp  String?
+  email     String?
+  instagram String?
 }
