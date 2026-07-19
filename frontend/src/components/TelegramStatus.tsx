@@ -23,7 +23,7 @@ export function TelegramStatus() {
   }
 
   const userName =
-    user?.first_name ||
+    user?.firstName ||
     user?.username ||
     'Telegram';
 

@@ -622,3 +622,15 @@ html[data-telegram='true'] #root {
     max-width: 90px;
   }
 }
+
+.telegram-status--loading {
+  background: #ede4d8;
+  border-color: #d8c7b3;
+  color: #7a5235;
+}
+
+.telegram-status--error {
+  background: #f7e9e4;
+  border-color: #c88d7d;
+  color: #8a3f31;
+}
