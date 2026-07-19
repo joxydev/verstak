@@ -1,14 +1,24 @@
-import { Injectable } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
+import {
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import {
+  UserRole,
+  type User,
+} from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
+import type { JwtPayload } from './interfaces/jwt-payload.interface';
 import { TelegramInitDataService } from './telegram-init-data.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly telegramInitDataService: TelegramInitDataService,
+    private readonly telegramInitDataService:
+      TelegramInitDataService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async authenticateTelegram(initData: string) {
@@ -73,20 +83,61 @@ export class AuthService {
       },
     });
 
-    return {
-      user: {
-        id: user.id,
-        telegramId: user.telegramId,
-        username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        photoUrl: user.photoUrl,
-        languageCode: user.languageCode,
-        isPremium: user.isPremium,
-        role: user.role,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
+    const expiresIn =
+      this.getJwtExpiresInSeconds();
+
+    const payload: JwtPayload = {
+      sub: user.id,
+      telegramId: user.telegramId,
+      role: user.role,
     };
+
+    const accessToken =
+      await this.jwtService.signAsync(payload, {
+        expiresIn,
+      });
+
+    return {
+      accessToken,
+      tokenType: 'Bearer',
+      expiresIn,
+      user: this.serializeUser(user),
+    };
+  }
+
+  serializeUser(user: User) {
+    return {
+      id: user.id,
+      telegramId: user.telegramId,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      photoUrl: user.photoUrl,
+      languageCode: user.languageCode,
+      isPremium: user.isPremium,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  private getJwtExpiresInSeconds(): number {
+    const configuredValue = Number(
+      process.env.JWT_EXPIRES_IN_SECONDS,
+    );
+
+    if (
+      process.env.JWT_EXPIRES_IN_SECONDS &&
+      (
+        !Number.isInteger(configuredValue) ||
+        configuredValue <= 0
+      )
+    ) {
+      throw new InternalServerErrorException(
+        'JWT_EXPIRES_IN_SECONDS must be a positive integer',
+      );
+    }
+
+    return configuredValue || 604800;
   }
 }
