@@ -8,7 +8,35 @@ import { UpdateProductDto } from './dto/update-product.dto';
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
+  findPublished() {
+    return this.prisma.product.findMany({
+      where: {
+        isPublished: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  async findPublishedById(id: number) {
+    const product = await this.prisma.product.findFirst({
+      where: {
+        id,
+        isPublished: true,
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundException(
+        `Published product with ID ${id} was not found`,
+      );
+    }
+
+    return product;
+  }
+
+  findAllForAdmin() {
     return this.prisma.product.findMany({
       orderBy: {
         createdAt: 'desc',
@@ -16,7 +44,7 @@ export class ProductsService {
     });
   }
 
-  async findOne(id: number) {
+  async findByIdForAdmin(id: number) {
     const product = await this.prisma.product.findUnique({
       where: {
         id,
@@ -47,18 +75,41 @@ export class ProductsService {
   }
 
   async update(id: number, dto: UpdateProductDto) {
-    await this.findOne(id);
+    await this.findByIdForAdmin(id);
 
     return this.prisma.product.update({
       where: {
         id,
       },
-      data: dto,
+      data: {
+        title: dto.title,
+        description: dto.description,
+        price: dto.price,
+        category: dto.category,
+        wood: dto.wood,
+        size: dto.size,
+        managerLink: dto.managerLink,
+        coverImage: dto.coverImage,
+        isPublished: dto.isPublished,
+      },
+    });
+  }
+
+  async setPublication(id: number, isPublished: boolean) {
+    await this.findByIdForAdmin(id);
+
+    return this.prisma.product.update({
+      where: {
+        id,
+      },
+      data: {
+        isPublished,
+      },
     });
   }
 
   async remove(id: number) {
-    await this.findOne(id);
+    await this.findByIdForAdmin(id);
 
     await this.prisma.product.delete({
       where: {
