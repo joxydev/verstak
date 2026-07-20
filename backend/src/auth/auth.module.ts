@@ -6,6 +6,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { TelegramInitDataService } from './telegram-init-data.service';
 
@@ -20,13 +21,10 @@ import { TelegramInitDataService } from './telegram-init-data.service';
 
     JwtModule.registerAsync({
       useFactory: () => {
-        const secret =
-          process.env.JWT_SECRET?.trim();
+        const secret = process.env.JWT_SECRET?.trim();
 
         if (!secret) {
-          throw new Error(
-            'JWT_SECRET environment variable is not configured',
-          );
+          throw new Error('JWT_SECRET environment variable is not configured');
         }
 
         return {
@@ -36,15 +34,14 @@ import { TelegramInitDataService } from './telegram-init-data.service';
     }),
   ],
 
-  controllers: [
-    AuthController,
-  ],
+  controllers: [AuthController],
 
   providers: [
     AuthService,
     TelegramInitDataService,
     JwtStrategy,
     JwtAuthGuard,
+    RolesGuard,
   ],
 
   exports: [
@@ -53,6 +50,7 @@ import { TelegramInitDataService } from './telegram-init-data.service';
     JwtModule,
     PassportModule,
     JwtAuthGuard,
+    RolesGuard,
   ],
 })
 export class AuthModule {}
