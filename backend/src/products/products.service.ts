@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -40,6 +41,7 @@ export class ProductsService {
         size: dto.size,
         managerLink: dto.managerLink,
         coverImage: dto.coverImage,
+        isPublished: dto.isPublished ?? false,
       },
     });
   }

@@ -28,16 +28,18 @@ model User {
 }
 
 model Product {
-  id           Int      @id @default(autoincrement())
-  title        String
-  description  String
-  price        Decimal
-  category     String
-  wood         String?
-  size         String?
-  managerLink  String
-  coverImage   String
-  createdAt    DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  price       Decimal
+  category    String
+  wood        String?
+  size        String?
+  managerLink String
+  coverImage  String
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Gallery {

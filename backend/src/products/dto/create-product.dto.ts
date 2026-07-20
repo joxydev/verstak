@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -64,4 +65,8 @@ export class CreateProductDto {
     },
   )
   coverImage: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isPublished?: boolean;
 }
