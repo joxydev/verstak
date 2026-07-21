@@ -1,12 +1,6 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import {
-  UserRole,
-  type User,
-} from '@prisma/client';
+import { UserRole, type User } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import type { JwtPayload } from './interfaces/jwt-payload.interface';
@@ -16,31 +10,20 @@ import { TelegramInitDataService } from './telegram-init-data.service';
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly telegramInitDataService:
-      TelegramInitDataService,
+    private readonly telegramInitDataService: TelegramInitDataService,
     private readonly jwtService: JwtService,
   ) {}
 
   async authenticateTelegram(initData: string) {
-    const validatedData =
-      this.telegramInitDataService.validate(initData);
+    const validatedData = this.telegramInitDataService.validate(initData);
 
     const telegramUser = validatedData.user;
     const telegramId = String(telegramUser.id);
 
-    const ownerTelegramId =
-      process.env.TELEGRAM_OWNER_ID?.trim();
+    const ownerTelegramId = this.getOwnerTelegramId();
 
-    const shouldBeOwner =
-      Boolean(ownerTelegramId) &&
-      telegramId === ownerTelegramId;
-
-    const existingUser =
-      await this.prisma.user.findUnique({
-        where: {
-          telegramId,
-        },
-      });
+    const role =
+      telegramId === ownerTelegramId ? UserRole.OWNER : UserRole.USER;
 
     const user = await this.prisma.user.upsert({
       where: {
@@ -53,13 +36,9 @@ export class AuthService {
         lastName: telegramUser.last_name || null,
         username: telegramUser.username || null,
         photoUrl: telegramUser.photo_url || null,
-        languageCode:
-          telegramUser.language_code || null,
-        isPremium:
-          telegramUser.is_premium === true,
-        role: shouldBeOwner
-          ? UserRole.OWNER
-          : UserRole.USER,
+        languageCode: telegramUser.language_code || null,
+        isPremium: telegramUser.is_premium === true,
+        role,
         lastLoginAt: new Date(),
       },
 
@@ -68,23 +47,14 @@ export class AuthService {
         lastName: telegramUser.last_name || null,
         username: telegramUser.username || null,
         photoUrl: telegramUser.photo_url || null,
-        languageCode:
-          telegramUser.language_code || null,
-        isPremium:
-          telegramUser.is_premium === true,
+        languageCode: telegramUser.language_code || null,
+        isPremium: telegramUser.is_premium === true,
+        role,
         lastLoginAt: new Date(),
-
-        ...(shouldBeOwner &&
-        existingUser?.role !== UserRole.OWNER
-          ? {
-              role: UserRole.OWNER,
-            }
-          : {}),
       },
     });
 
-    const expiresIn =
-      this.getJwtExpiresInSeconds();
+    const expiresIn = this.getJwtExpiresInSeconds();
 
     const payload: JwtPayload = {
       sub: user.id,
@@ -92,10 +62,9 @@ export class AuthService {
       role: user.role,
     };
 
-    const accessToken =
-      await this.jwtService.signAsync(payload, {
-        expiresIn,
-      });
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn,
+    });
 
     return {
       accessToken,
@@ -116,22 +85,30 @@ export class AuthService {
       languageCode: user.languageCode,
       isPremium: user.isPremium,
       role: user.role,
+      lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
   }
 
+  private getOwnerTelegramId(): string {
+    const ownerTelegramId = process.env.TELEGRAM_OWNER_ID?.trim();
+
+    if (!ownerTelegramId || !/^\d+$/.test(ownerTelegramId)) {
+      throw new InternalServerErrorException(
+        'TELEGRAM_OWNER_ID must contain the numeric Telegram user ID',
+      );
+    }
+
+    return ownerTelegramId;
+  }
+
   private getJwtExpiresInSeconds(): number {
-    const configuredValue = Number(
-      process.env.JWT_EXPIRES_IN_SECONDS,
-    );
+    const configuredValue = Number(process.env.JWT_EXPIRES_IN_SECONDS);
 
     if (
       process.env.JWT_EXPIRES_IN_SECONDS &&
-      (
-        !Number.isInteger(configuredValue) ||
-        configuredValue <= 0
-      )
+      (!Number.isInteger(configuredValue) || configuredValue <= 0)
     ) {
       throw new InternalServerErrorException(
         'JWT_EXPIRES_IN_SECONDS must be a positive integer',

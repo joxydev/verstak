@@ -23,7 +23,7 @@ import { ProductsService } from './products.service';
 
 @Controller('admin/products')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN, UserRole.OWNER)
+@Roles(UserRole.OWNER)
 export class AdminProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
@@ -33,31 +33,49 @@ export class AdminProductsController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(
+    @Param('id', ParseIntPipe)
+    id: number,
+  ) {
     return this.productsService.findByIdForAdmin(id);
   }
 
   @Post()
-  create(@Body() dto: CreateProductDto) {
+  create(
+    @Body()
+    dto: CreateProductDto,
+  ) {
     return this.productsService.create(dto);
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto) {
+  update(
+    @Param('id', ParseIntPipe)
+    id: number,
+
+    @Body()
+    dto: UpdateProductDto,
+  ) {
     return this.productsService.update(id, dto);
   }
 
   @Patch(':id/publication')
   setPublication(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: SetProductPublicationDto,
+    @Param('id', ParseIntPipe)
+    id: number,
+
+    @Body()
+    dto: SetProductPublicationDto,
   ) {
     return this.productsService.setPublication(id, dto.isPublished);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(
+    @Param('id', ParseIntPipe)
+    id: number,
+  ) {
     return this.productsService.remove(id);
   }
 }

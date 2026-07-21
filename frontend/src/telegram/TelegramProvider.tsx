@@ -54,7 +54,9 @@ interface TelegramContextValue {
 }
 
 const TelegramContext =
-  createContext<TelegramContextValue | null>(null);
+  createContext<TelegramContextValue | null>(
+    null,
+  );
 
 interface TelegramProviderProps {
   children: ReactNode;
@@ -99,6 +101,71 @@ export function TelegramProvider({
       const initData =
         initializedWebApp?.initData ?? '';
 
+      /*
+       * В Telegram всегда выполняем новую
+       * авторизацию через текущий initData.
+       *
+       * Старый JWT может относиться к другому
+       * Telegram-аккаунту на этом устройстве.
+       */
+      if (initData) {
+        clearAuthSession();
+
+        try {
+          const response =
+            await authenticateTelegram(
+              initData,
+            );
+
+          if (!isActive) {
+            return;
+          }
+
+          setUser(response.user);
+          setAuthStatus(
+            'authenticated',
+          );
+
+          console.info(
+            'Telegram authentication completed',
+            {
+              userId:
+                response.user.id,
+              telegramId:
+                response.user.telegramId,
+              role:
+                response.user.role,
+            },
+          );
+
+          return;
+        } catch (error) {
+          if (!isActive) {
+            return;
+          }
+
+          const message =
+            error instanceof Error
+              ? error.message
+              : 'Telegram authentication failed';
+
+          setUser(null);
+          setAuthError(message);
+          setAuthStatus('error');
+
+          console.error(
+            'Telegram authentication failed:',
+            error,
+          );
+
+          return;
+        }
+      }
+
+      /*
+       * JWT-восстановление разрешено только
+       * при открытии сайта вне Telegram.
+       */
       if (hasAccessToken()) {
         try {
           const response =
@@ -109,22 +176,14 @@ export function TelegramProvider({
           }
 
           setUser(response.user);
-          setAuthStatus('authenticated');
-
-          console.info(
-            'JWT session restored',
-            {
-              userId: response.user.id,
-              telegramId:
-                response.user.telegramId,
-              role: response.user.role,
-            },
+          setAuthStatus(
+            'authenticated',
           );
 
           return;
         } catch (error) {
           console.warn(
-            'JWT session restoration failed:',
+            'Browser JWT restoration failed:',
             error,
           );
 
@@ -132,55 +191,12 @@ export function TelegramProvider({
         }
       }
 
-      if (!initData) {
-        if (!isActive) {
-          return;
-        }
-
-        setUser(null);
-        setAuthStatus('browser');
+      if (!isActive) {
         return;
       }
 
-      try {
-        const response =
-          await authenticateTelegram(initData);
-
-        if (!isActive) {
-          return;
-        }
-
-        setUser(response.user);
-        setAuthStatus('authenticated');
-
-        console.info(
-          'Telegram backend authentication completed',
-          {
-            userId: response.user.id,
-            telegramId:
-              response.user.telegramId,
-            role: response.user.role,
-          },
-        );
-      } catch (error) {
-        if (!isActive) {
-          return;
-        }
-
-        const message =
-          error instanceof Error
-            ? error.message
-            : 'Telegram authentication failed';
-
-        console.error(
-          'Telegram backend authentication failed:',
-          error,
-        );
-
-        setUser(null);
-        setAuthError(message);
-        setAuthStatus('error');
-      }
+      setUser(null);
+      setAuthStatus('browser');
     }
 
     void initialize();
@@ -193,13 +209,7 @@ export function TelegramProvider({
   const handleLogout = () => {
     clearAuthSession();
     setUser(null);
-
-    const initData =
-      webApp?.initData ?? '';
-
-    setAuthStatus(
-      initData ? 'idle' : 'browser',
-    );
+    setAuthStatus('browser');
   };
 
   const value =
@@ -212,20 +222,34 @@ export function TelegramProvider({
 
       return {
         webApp,
+
         telegramUser:
-          webApp?.initDataUnsafe.user ?? null,
+          webApp?.initDataUnsafe.user ??
+          null,
+
         user,
         initData,
-        isTelegram: Boolean(initData),
+
+        isTelegram:
+          Boolean(initData),
+
         isReady,
+
         isAuthenticated:
-          authStatus === 'authenticated' &&
+          authStatus ===
+            'authenticated' &&
           Boolean(user),
+
+        /*
+         * В текущей версии админ-панель
+         * разрешена исключительно OWNER.
+         */
         isAdmin:
-          role === 'ADMIN' ||
           role === 'OWNER',
+
         isOwner:
           role === 'OWNER',
+
         role,
         authStatus,
         authError,
@@ -240,7 +264,9 @@ export function TelegramProvider({
     ]);
 
   return (
-    <TelegramContext.Provider value={value}>
+    <TelegramContext.Provider
+      value={value}
+    >
       {children}
     </TelegramContext.Provider>
   );
