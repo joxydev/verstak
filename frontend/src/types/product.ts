@@ -8,5 +8,7 @@ export interface Product {
   size: string | null;
   managerLink: string;
   coverImage: string;
+  isPublished: boolean;
   createdAt: string;
+  updatedAt: string;
 }
