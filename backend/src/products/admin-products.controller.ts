@@ -17,6 +17,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { CreateProductDto } from './dto/create-product.dto';
+import { ResolveImageUrlDto } from './dto/resolve-image-url.dto';
 import { SetProductPublicationDto } from './dto/set-product-publication.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductsService } from './products.service';
@@ -30,6 +31,14 @@ export class AdminProductsController {
   @Get()
   findAll() {
     return this.productsService.findAllForAdmin();
+  }
+
+  @Post('resolve-image')
+  resolveImage(
+    @Body()
+    dto: ResolveImageUrlDto,
+  ) {
+    return this.productsService.resolveImageUrl(dto.url);
   }
 
   @Get(':id')

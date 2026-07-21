@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -65,8 +69,8 @@ export class ProductsService {
         description: dto.description,
         price: dto.price,
         category: dto.category,
-        wood: dto.wood,
-        size: dto.size,
+        wood: dto.wood || null,
+        size: dto.size || null,
         managerLink: dto.managerLink,
         coverImage: dto.coverImage,
         isPublished: dto.isPublished ?? false,
@@ -120,6 +124,97 @@ export class ProductsService {
     return {
       status: 'ok',
       message: `Product with ID ${id} deleted`,
+    };
+  }
+
+  async resolveImageUrl(rawUrl: string): Promise<{
+    originalUrl: string;
+    resolvedUrl: string;
+  }> {
+    let parsedUrl: URL;
+
+    try {
+      parsedUrl = new URL(rawUrl);
+    } catch {
+      throw new BadRequestException('Image URL is invalid');
+    }
+
+    if (parsedUrl.protocol !== 'https:') {
+      throw new BadRequestException('Only HTTPS image URLs are allowed');
+    }
+
+    const hostname = parsedUrl.hostname.toLowerCase();
+
+    /*
+     * Прямые ссылки на изображения и любые
+     * другие HTTPS URL сохраняем без сетевого
+     * запроса.
+     */
+    if (hostname !== 'ibb.co') {
+      return {
+        originalUrl: rawUrl,
+        resolvedUrl: rawUrl,
+      };
+    }
+
+    let response: Response;
+
+    try {
+      response = await fetch(rawUrl, {
+        redirect: 'follow',
+        headers: {
+          Accept: 'text/html',
+          'User-Agent': 'VERSTAK-Image-Resolver/1.0',
+        },
+        signal: AbortSignal.timeout(8000),
+      });
+    } catch {
+      throw new BadRequestException('Failed to open the ibb.co page');
+    }
+
+    if (!response.ok) {
+      throw new BadRequestException(`ibb.co returned HTTP ${response.status}`);
+    }
+
+    const contentType = response.headers.get('content-type') ?? '';
+
+    if (!contentType.includes('text/html')) {
+      throw new BadRequestException('ibb.co did not return an HTML page');
+    }
+
+    const html = await response.text();
+
+    const imageMatch =
+      html.match(
+        /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i,
+      ) ??
+      html.match(
+        /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
+      );
+
+    const resolvedUrl = imageMatch?.[1]?.replaceAll('&amp;', '&').trim();
+
+    if (!resolvedUrl) {
+      throw new BadRequestException(
+        'Direct image URL was not found on the ibb.co page',
+      );
+    }
+
+    let resolvedParsedUrl: URL;
+
+    try {
+      resolvedParsedUrl = new URL(resolvedUrl);
+    } catch {
+      throw new BadRequestException('ibb.co returned an invalid image URL');
+    }
+
+    if (resolvedParsedUrl.protocol !== 'https:') {
+      throw new BadRequestException('Resolved image URL is not HTTPS');
+    }
+
+    return {
+      originalUrl: rawUrl,
+      resolvedUrl,
     };
   }
 }
