@@ -640,7 +640,7 @@ export function AdminProductsPage() {
 
                         <span
                           className={
-                            product.isPublishe
+                            product.isPublished
                               ? "admin-status admin-status--published"
                               : "admin-status admin-status--draft"
                           }
