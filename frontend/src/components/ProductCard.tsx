@@ -1,60 +1,118 @@
-import { Link } from 'react-router-dom';
-import type { Product } from '../types/product';
+import {
+  useState,
+} from 'react';
+import {
+  Link,
+} from 'react-router-dom';
+
+import {
+  ROUTES,
+} from '../routes';
+import type {
+  Product,
+} from '../types/product';
+
+import {
+  ProductPrice,
+} from './ui/ProductPrice';
 
 interface ProductCardProps {
   product: Product;
+  priority?: boolean;
 }
 
-function formatPrice(value: string | number): string {
-  const price = Number(value);
+export function ProductCard({
+  product,
+  priority = false,
+}: ProductCardProps) {
+  const [
+    hasImageError,
+    setHasImageError,
+  ] = useState(false);
 
-  if (!Number.isFinite(price)) {
-    return String(value);
-  }
+  const secondaryDetail =
+    product.wood ||
+    product.size;
 
-  return new Intl.NumberFormat('ru-RU', {
-    maximumFractionDigits: 2,
-  }).format(price);
-}
-
-export function ProductCard({ product }: ProductCardProps) {
   return (
     <article className="product-card">
       <Link
-        className="product-card__image-link"
-        to={`/products/${product.id}`}
-        aria-label={`Открыть товар ${product.title}`}
+        className="product-card__link"
+        to={ROUTES.product(
+          product.id,
+        )}
+        aria-label={`Открыть изделие «${product.title}»`}
       >
-        <img
-          className="product-card__image"
-          src={product.coverImage}
-          alt={product.title}
-          loading="lazy"
-        />
-      </Link>
+        <div className="product-card__media">
+          {!hasImageError ? (
+            <img
+              className="product-card__image"
+              src={product.coverImage}
+              alt={product.title}
+              width={960}
+              height={720}
+              loading={
+                priority
+                  ? 'eager'
+                  : 'lazy'
+              }
+              fetchPriority={
+                priority
+                  ? 'high'
+                  : 'auto'
+              }
+              decoding="async"
+              onError={() =>
+                setHasImageError(
+                  true,
+                )
+              }
+            />
+          ) : (
+            <div
+              className="product-card__placeholder"
+              aria-label="Изображение временно недоступно"
+            >
+              <span aria-hidden="true">
+                V
+              </span>
+            </div>
+          )}
 
-      <div className="product-card__body">
-        <span className="product-card__category">{product.category}</span>
-
-        <h2 className="product-card__title">
-          <Link to={`/products/${product.id}`}>{product.title}</Link>
-        </h2>
-
-        <p className="product-card__description">{product.description}</p>
-
-        <div className="product-card__footer">
-          <strong className="product-card__price">
-            {formatPrice(product.price)} MDL
-          </strong>
-
-          <Link
-            className="button button--secondary"
-            to={`/products/${product.id}`}
-          >
-            Подробнее
-          </Link>
+          <span className="product-card__action">
+            Смотреть изделие
+            <span aria-hidden="true">
+              ↗
+            </span>
+          </span>
         </div>
-      </div>
+
+        <div className="product-card__body">
+          <span className="product-badge">
+            {product.category}
+          </span>
+
+          <h3 className="product-card__title">
+            {product.title}
+          </h3>
+
+          <p className="product-card__description">
+            {product.description}
+          </p>
+
+          <div className="product-card__footer">
+            <ProductPrice
+              value={product.price}
+            />
+
+            {secondaryDetail && (
+              <span className="product-card__detail">
+                {secondaryDetail}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
     </article>
   );
 }

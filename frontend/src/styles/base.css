@@ -1,0 +1,157 @@
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100svh;
+  overflow-x: hidden;
+  background:
+    var(--color-canvas);
+  color:
+    var(--color-text);
+  font-family:
+    var(--font-ui);
+  font-size:
+    var(--text-base);
+  line-height: 1.65;
+  font-synthesis: none;
+  text-rendering:
+    optimizeLegibility;
+  -webkit-font-smoothing:
+    antialiased;
+}
+
+::selection {
+  background:
+    var(--color-wood);
+  color:
+    var(--color-surface);
+}
+
+h1,
+h2,
+h3 {
+  color:
+    var(--color-ink);
+  font-family:
+    var(--font-display);
+  font-weight: 500;
+  letter-spacing:
+    -0.035em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size:
+    var(--display-small);
+  line-height: 0.98;
+}
+
+h2 {
+  font-size:
+    var(--section-title);
+  line-height: 1.02;
+}
+
+h3 {
+  font-size:
+    clamp(
+      1.5rem,
+      4vw,
+      2rem
+    );
+  line-height: 1.12;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+a,
+button,
+input,
+textarea,
+select {
+  transition:
+    border-color
+      var(--transition-fast),
+    background-color
+      var(--transition-fast),
+    color
+      var(--transition-fast),
+    opacity
+      var(--transition-fast),
+    transform
+      var(--transition-base),
+    box-shadow
+      var(--transition-base);
+}
+
+:focus-visible {
+  outline:
+    3px solid
+    color-mix(
+      in srgb,
+      var(--color-focus)
+        62%,
+      transparent
+    );
+  outline-offset: 3px;
+}
+
+button:disabled,
+input:disabled,
+textarea:disabled,
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+input,
+textarea,
+select {
+  min-height: 2.875rem;
+}
+
+input,
+textarea {
+  cursor: text;
+}
+
+#root {
+  min-height:
+    var(
+      --tg-viewport-stable-height,
+      100svh
+    );
+}
+
+.fatal-error {
+  display: grid;
+  min-height: 100svh;
+  place-content: center;
+  gap: var(--space-4);
+  padding:
+    var(--space-8);
+  background:
+    var(--color-canvas);
+  text-align: center;
+}
+
+.fatal-error h1 {
+  font-size:
+    clamp(
+      2rem,
+      8vw,
+      4rem
+    );
+}
+
+.fatal-error p {
+  max-width: 35rem;
+  color:
+    var(--color-muted);
+}

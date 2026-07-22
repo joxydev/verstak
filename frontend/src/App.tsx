@@ -1,113 +1,150 @@
 import {
+  lazy,
+  Suspense,
+} from 'react';
+import {
   Link,
   Route,
   Routes,
 } from 'react-router-dom';
 
-import { AdminRoute } from './components/AdminRoute';
-import { TelegramStatus } from './components/TelegramStatus';
+import {
+  AdminRoute,
+} from './components/AdminRoute';
+import {
+  ScrollToTop,
+} from './components/ScrollToTop';
+import {
+  SiteFooter,
+} from './components/SiteFooter';
+import {
+  SiteHeader,
+} from './components/SiteHeader';
+import {
+  buttonClassName,
+} from './components/ui/Button';
+import {
+  FeedbackState,
+} from './components/ui/FeedbackState';
+import {
+  RouteFallback,
+} from './components/ui/Skeleton';
+import {
+  ROUTES,
+} from './routes';
 
-import { AdminProductsPage } from './pages/AdminProductsPage';
-import { CatalogPage } from './pages/CatalogPage';
-import { ProductPage } from './pages/ProductPage';
+const CatalogPage =
+  lazy(async () => {
+    const module =
+      await import(
+        './pages/CatalogPage'
+      );
 
-import { useTelegram } from './telegram/TelegramProvider';
+    return {
+      default:
+        module.CatalogPage,
+    };
+  });
 
-function App() {
-  const {
-    isAdmin,
-  } = useTelegram();
+const ProductPage =
+  lazy(async () => {
+    const module =
+      await import(
+        './pages/ProductPage'
+      );
 
+    return {
+      default:
+        module.ProductPage,
+    };
+  });
+
+const AdminProductsPage =
+  lazy(async () => {
+    const module =
+      await import(
+        './pages/AdminProductsPage'
+      );
+
+    return {
+      default:
+        module.AdminProductsPage,
+    };
+  });
+
+function NotFoundPage() {
   return (
-    <div className="app">
-      <header className="site-header">
-        <div className="container site-header__content">
-          <Link
-            className="brand"
-            to="/"
-          >
-            VERSTAK
-          </Link>
-
-          <div className="site-header__actions">
-            <nav
-              className="site-navigation"
-              aria-label="Основная навигация"
+    <main className="page-shell">
+      <div className="container">
+        <FeedbackState
+          title="Страница не найдена"
+          description="Такой страницы в каталоге VERSTAK нет."
+          action={
+            <Link
+              className={buttonClassName({
+                variant:
+                  'primary',
+              })}
+              to={ROUTES.home}
             >
-              <Link to="/">
-                Каталог
-              </Link>
-
-              {isAdmin && (
-                <Link to="/admin">
-                  Админка
-                </Link>
-              )}
-
-              <a
-                href="https://t.me/your_manager"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Контакты
-              </a>
-            </nav>
-
-            <TelegramStatus />
-          </div>
-        </div>
-      </header>
-
-      <Routes>
-        <Route
-          path="/"
-          element={<CatalogPage />}
-        />
-
-        <Route
-          path="/products/:id"
-          element={<ProductPage />}
-        />
-
-        <Route element={<AdminRoute />}>
-          <Route
-            path="/admin"
-            element={<AdminProductsPage />}
-          />
-        </Route>
-
-        <Route
-          path="*"
-          element={
-            <main className="page-section">
-              <div className="container">
-                <div className="status-card">
-                  <h1>
-                    Страница не найдена
-                  </h1>
-
-                  <Link
-                    className="button button--primary"
-                    to="/"
-                  >
-                    Открыть каталог
-                  </Link>
-                </div>
-              </div>
-            </main>
+              Открыть коллекцию
+            </Link>
           }
         />
-      </Routes>
+      </div>
+    </main>
+  );
+}
 
-      <footer className="site-footer">
-        <div className="container site-footer__content">
-          <strong>VERSTAK</strong>
+function App() {
+  return (
+    <div className="site-shell">
+      <ScrollToTop />
+      <SiteHeader />
 
-          <span>
-            Авторские изделия из дерева
-          </span>
-        </div>
-      </footer>
+      <Suspense
+        fallback={
+          <RouteFallback />
+        }
+      >
+        <Routes>
+          <Route
+            path={ROUTES.home}
+            element={
+              <CatalogPage />
+            }
+          />
+
+          <Route
+            path="/products/:id"
+            element={
+              <ProductPage />
+            }
+          />
+
+          <Route
+            element={
+              <AdminRoute />
+            }
+          >
+            <Route
+              path={ROUTES.admin}
+              element={
+                <AdminProductsPage />
+              }
+            />
+          </Route>
+
+          <Route
+            path="*"
+            element={
+              <NotFoundPage />
+            }
+          />
+        </Routes>
+      </Suspense>
+
+      <SiteFooter />
     </div>
   );
 }

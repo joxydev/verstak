@@ -1,0 +1,9 @@
+@import './tokens.css';
+@import './reset.css';
+@import './base.css';
+@import './layout.css';
+@import './components.css';
+@import './utilities.css';
+@import './pages/catalog.css';
+@import './pages/product.css';
+@import './pages/admin.css';

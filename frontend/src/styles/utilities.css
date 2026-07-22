@@ -1,0 +1,35 @@
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip:
+    rect(
+      0,
+      0,
+      0,
+      0
+    ) !important;
+  clip-path:
+    inset(50%) !important;
+  white-space:
+    nowrap !important;
+}
+
+@media (
+  prefers-reduced-motion:
+    reduce
+) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior:
+      auto !important;
+    animation-duration:
+      0.01ms !important;
+    animation-iteration-count:
+      1 !important;
+    transition-duration:
+      0.01ms !important;
+  }
+}

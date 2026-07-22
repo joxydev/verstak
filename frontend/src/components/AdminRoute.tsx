@@ -3,7 +3,22 @@ import {
   Outlet,
 } from 'react-router-dom';
 
-import { useTelegram } from '../telegram/TelegramProvider';
+import {
+  ROUTES,
+} from '../routes';
+import {
+  useTelegram,
+} from '../telegram/TelegramProvider';
+
+import {
+  buttonClassName,
+} from './ui/Button';
+import {
+  FeedbackState,
+} from './ui/FeedbackState';
+import {
+  RouteFallback,
+} from './ui/Skeleton';
 
 export function AdminRoute() {
   const {
@@ -21,49 +36,33 @@ export function AdminRoute() {
 
   if (isLoading) {
     return (
-      <main className="page-section">
-        <div className="container">
-          <div className="status-card">
-            <div className="loader" />
-
-            <h1>Проверка доступа</h1>
-
-            <p>
-              Проверяем Telegram-сессию и права
-              пользователя.
-            </p>
-          </div>
-        </div>
-      </main>
+      <RouteFallback />
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <main className="page-section">
+      <main className="page-shell">
         <div className="container">
-          <div className="status-card status-card--error">
-            <h1>Требуется авторизация</h1>
-
-            <p>
-              Административная панель доступна
-              только после авторизации через
-              Telegram Mini App.
-            </p>
-
-            {authError && (
-              <p className="admin-error-details">
-                {authError}
-              </p>
-            )}
-
-            <Link
-              className="button button--primary"
-              to="/"
-            >
-              Вернуться в каталог
-            </Link>
-          </div>
+          <FeedbackState
+            tone="error"
+            title="Требуется авторизация"
+            description={
+              authError ||
+              'Панель управления доступна только после авторизации через Telegram Mini App.'
+            }
+            action={
+              <Link
+                className={buttonClassName({
+                  variant:
+                    'primary',
+                })}
+                to={ROUTES.home}
+              >
+                Вернуться в коллекцию
+              </Link>
+            }
+          />
         </div>
       </main>
     );
@@ -71,23 +70,24 @@ export function AdminRoute() {
 
   if (!isAdmin) {
     return (
-      <main className="page-section">
+      <main className="page-shell">
         <div className="container">
-          <div className="status-card status-card--error">
-            <h1>Доступ запрещён</h1>
-
-            <p>
-              Для открытия этой страницы
-              необходима роль ADMIN или OWNER.
-            </p>
-
-            <Link
-              className="button button--primary"
-              to="/"
-            >
-              Вернуться в каталог
-            </Link>
-          </div>
+          <FeedbackState
+            tone="error"
+            title="Доступ закрыт"
+            description="Панель управления доступна только владельцу мастерской."
+            action={
+              <Link
+                className={buttonClassName({
+                  variant:
+                    'primary',
+                })}
+                to={ROUTES.home}
+              >
+                Вернуться в коллекцию
+              </Link>
+            }
+          />
         </div>
       </main>
     );
