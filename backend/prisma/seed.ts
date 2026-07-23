@@ -156,11 +156,25 @@ async function seedProducts() {
   }
 }
 
+async function synchronizeProductIdSequence() {
+  await prisma.$queryRaw`
+    SELECT setval(
+      pg_get_serial_sequence('"Product"', 'id'),
+      COALESCE(MAX("id"), 1),
+      MAX("id") IS NOT NULL
+    )
+    FROM "Product"
+  `;
+
+  console.log('Product ID sequence synchronized.');
+}
+
 async function main() {
   console.log('Starting database seed...');
 
   await normalizeUserRoles();
   await seedProducts();
+  await synchronizeProductIdSequence();
 
   console.log(`Seed completed. Products processed: ${products.length}`);
 }

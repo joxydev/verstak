@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -8,8 +9,18 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
+function isUniqueConstraintError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null || !('code' in error)) {
+    return false;
+  }
+
+  return (error as { code?: unknown }).code === 'P2002';
+}
+
 @Injectable()
 export class ProductsService {
+  private readonly logger = new Logger(ProductsService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   findPublished() {
@@ -62,20 +73,22 @@ export class ProductsService {
     return product;
   }
 
-  create(dto: CreateProductDto) {
-    return this.prisma.product.create({
-      data: {
-        title: dto.title,
-        description: dto.description,
-        price: dto.price,
-        category: dto.category,
-        wood: dto.wood || null,
-        size: dto.size || null,
-        managerLink: dto.managerLink,
-        coverImage: dto.coverImage,
-        isPublished: dto.isPublished ?? false,
-      },
-    });
+  async create(dto: CreateProductDto) {
+    try {
+      return await this.createProductRecord(dto);
+    } catch (error) {
+      if (!isUniqueConstraintError(error)) {
+        throw error;
+      }
+
+      this.logger.warn(
+        'Product creation hit a duplicate generated ID. Synchronizing the PostgreSQL sequence and retrying once.',
+      );
+
+      await this.synchronizeProductIdSequence();
+
+      return this.createProductRecord(dto);
+    }
   }
 
   async update(id: number, dto: UpdateProductDto) {
@@ -216,5 +229,32 @@ export class ProductsService {
       originalUrl: rawUrl,
       resolvedUrl,
     };
+  }
+
+  private createProductRecord(dto: CreateProductDto) {
+    return this.prisma.product.create({
+      data: {
+        title: dto.title,
+        description: dto.description,
+        price: dto.price,
+        category: dto.category,
+        wood: dto.wood || null,
+        size: dto.size || null,
+        managerLink: dto.managerLink,
+        coverImage: dto.coverImage,
+        isPublished: dto.isPublished ?? false,
+      },
+    });
+  }
+
+  private async synchronizeProductIdSequence(): Promise<void> {
+    await this.prisma.$queryRaw`
+      SELECT setval(
+        pg_get_serial_sequence('"Product"', 'id'),
+        COALESCE(MAX("id"), 1),
+        MAX("id") IS NOT NULL
+      )
+      FROM "Product"
+    `;
   }
 }
