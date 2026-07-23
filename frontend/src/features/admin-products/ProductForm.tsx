@@ -64,16 +64,18 @@ export function ProductForm({
     }));
 
     if (key !== "isPublished") {
+      const errorKey = key as ProductTextField;
+
       setErrors((current) => {
-        if (!current[key]) {
+        if (!current[errorKey]) {
           return current;
         }
 
-        const next = {
+        const next: ProductFormErrors = {
           ...current,
         };
 
-        delete next[key];
+        delete next[errorKey];
 
         return next;
       });
