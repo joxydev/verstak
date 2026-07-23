@@ -8,62 +8,24 @@ body {
   min-width: 320px;
   min-height: 100svh;
   overflow-x: hidden;
-  background:
-    var(--color-canvas);
-  color:
-    var(--color-text);
-  font-family:
-    var(--font-ui);
-  font-size:
-    var(--text-base);
-  line-height: 1.65;
+  background: var(--color-canvas);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
   font-synthesis: none;
-  text-rendering:
-    optimizeLegibility;
-  -webkit-font-smoothing:
-    antialiased;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.menu-open {
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 ::selection {
-  background:
-    var(--color-wood);
-  color:
-    var(--color-surface);
-}
-
-h1,
-h2,
-h3 {
-  color:
-    var(--color-ink);
-  font-family:
-    var(--font-display);
-  font-weight: 500;
-  letter-spacing:
-    -0.035em;
-  text-wrap: balance;
-}
-
-h1 {
-  font-size:
-    var(--display-small);
-  line-height: 0.98;
-}
-
-h2 {
-  font-size:
-    var(--section-title);
-  line-height: 1.02;
-}
-
-h3 {
-  font-size:
-    clamp(
-      1.5rem,
-      4vw,
-      2rem
-    );
-  line-height: 1.12;
+  background: var(--color-wood);
+  color: var(--color-surface);
 }
 
 p {
@@ -76,29 +38,16 @@ input,
 textarea,
 select {
   transition:
-    border-color
-      var(--transition-fast),
-    background-color
-      var(--transition-fast),
-    color
-      var(--transition-fast),
-    opacity
-      var(--transition-fast),
-    transform
-      var(--transition-base),
-    box-shadow
-      var(--transition-base);
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard),
+    transform var(--duration-base) var(--ease-standard),
+    box-shadow var(--duration-base) var(--ease-standard);
 }
 
 :focus-visible {
-  outline:
-    3px solid
-    color-mix(
-      in srgb,
-      var(--color-focus)
-        62%,
-      transparent
-    );
+  outline: 3px solid color-mix(in srgb, var(--color-focus) 65%, transparent);
   outline-offset: 3px;
 }
 
@@ -107,13 +56,13 @@ input:disabled,
 textarea:disabled,
 select:disabled {
   cursor: not-allowed;
-  opacity: 0.58;
+  opacity: 0.56;
 }
 
 input,
 textarea,
 select {
-  min-height: 2.875rem;
+  min-height: var(--control-height);
 }
 
 input,
@@ -122,11 +71,7 @@ textarea {
 }
 
 #root {
-  min-height:
-    var(
-      --tg-viewport-stable-height,
-      100svh
-    );
+  min-height: var(--tg-viewport-stable-height, 100svh);
 }
 
 .fatal-error {
@@ -134,24 +79,12 @@ textarea {
   min-height: 100svh;
   place-content: center;
   gap: var(--space-4);
-  padding:
-    var(--space-8);
-  background:
-    var(--color-canvas);
+  padding: var(--space-8);
+  background: var(--color-canvas);
   text-align: center;
 }
 
-.fatal-error h1 {
-  font-size:
-    clamp(
-      2rem,
-      8vw,
-      4rem
-    );
-}
-
 .fatal-error p {
-  max-width: 35rem;
-  color:
-    var(--color-muted);
+  max-width: 34rem;
+  color: var(--color-muted);
 }

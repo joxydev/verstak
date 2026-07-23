@@ -1,80 +1,41 @@
-import {
-  lazy,
-  Suspense,
-} from 'react';
-import {
-  Link,
-  Route,
-  Routes,
-} from 'react-router-dom';
+import { lazy, Suspense } from "react";
+import { Link, Route, Routes } from "react-router-dom";
 
-import {
-  AdminRoute,
-} from './components/AdminRoute';
-import {
-  ScrollToTop,
-} from './components/ScrollToTop';
-import {
-  SiteFooter,
-} from './components/SiteFooter';
-import {
-  SiteHeader,
-} from './components/SiteHeader';
-import {
-  buttonClassName,
-} from './components/ui/Button';
-import {
-  FeedbackState,
-} from './components/ui/FeedbackState';
-import {
-  RouteFallback,
-} from './components/ui/Skeleton';
-import {
-  ROUTES,
-} from './routes';
+import { AdminRoute } from "./components/AdminRoute";
+import { PublicShell } from "./components/layout/PublicShell";
+import { ScrollToTop } from "./components/ScrollToTop";
+import { buttonClassName } from "./components/ui/Button";
+import { FeedbackState } from "./components/ui/FeedbackState";
+import { RouteFallback } from "./components/ui/Skeleton";
+import { ROUTES } from "./routes";
 
-const CatalogPage =
-  lazy(async () => {
-    const module =
-      await import(
-        './pages/CatalogPage'
-      );
+const CatalogPage = lazy(async () => {
+  const module = await import("./pages/CatalogPage");
 
-    return {
-      default:
-        module.CatalogPage,
-    };
-  });
+  return {
+    default: module.CatalogPage,
+  };
+});
 
-const ProductPage =
-  lazy(async () => {
-    const module =
-      await import(
-        './pages/ProductPage'
-      );
+const ProductPage = lazy(async () => {
+  const module = await import("./pages/ProductPage");
 
-    return {
-      default:
-        module.ProductPage,
-    };
-  });
+  return {
+    default: module.ProductPage,
+  };
+});
 
-const AdminProductsPage =
-  lazy(async () => {
-    const module =
-      await import(
-        './pages/AdminProductsPage'
-      );
+const AdminProductsPage = lazy(async () => {
+  const module = await import("./pages/AdminProductsPage");
 
-    return {
-      default:
-        module.AdminProductsPage,
-    };
-  });
+  return {
+    default: module.AdminProductsPage,
+  };
+});
 
 function NotFoundPage() {
   return (
-    <main className="page-shell">
+    <main id="main-content" className="page-shell">
       <div className="container">
         <FeedbackState
           title="Страница не найдена"
@@ -82,8 +43,7 @@ function NotFoundPage() {
           action={
             <Link
               className={buttonClassName({
-                variant:
-                  'primary',
+                variant: "primary",
               })}
               to={ROUTES.home}
             >
@@ -98,54 +58,25 @@ function NotFoundPage() {
 
 function App() {
   return (
-    <div className="site-shell">
+    <>
       <ScrollToTop />
-      <SiteHeader />
 
-      <Suspense
-        fallback={
-          <RouteFallback />
-        }
-      >
+      <Suspense fallback={<RouteFallback />}>
         <Routes>
-          <Route
-            path={ROUTES.home}
-            element={
-              <CatalogPage />
-            }
-          />
+          <Route element={<PublicShell />}>
+            <Route path={ROUTES.home} element={<CatalogPage />} />
 
-          <Route
-            path="/products/:id"
-            element={
-              <ProductPage />
-            }
-          />
+            <Route path="/products/:id" element={<ProductPage />} />
 
-          <Route
-            element={
-              <AdminRoute />
-            }
-          >
-            <Route
-              path={ROUTES.admin}
-              element={
-                <AdminProductsPage />
-              }
-            />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
 
-          <Route
-            path="*"
-            element={
-              <NotFoundPage />
-            }
-          />
+          <Route element={<AdminRoute />}>
+            <Route path={ROUTES.admin} element={<AdminProductsPage />} />
+          </Route>
         </Routes>
       </Suspense>
-
-      <SiteFooter />
-    </div>
+    </>
   );
 }
 
