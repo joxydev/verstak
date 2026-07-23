@@ -1,12 +1,19 @@
 import { lazy, Suspense } from "react";
+
 import { Link, Route, Routes } from "react-router-dom";
 
 import { AdminRoute } from "./components/AdminRoute";
+
 import { PublicShell } from "./components/layout/PublicShell";
+
 import { ScrollToTop } from "./components/ScrollToTop";
+
 import { buttonClassName } from "./components/ui/Button";
+
 import { FeedbackState } from "./components/ui/FeedbackState";
+
 import { RouteFallback } from "./components/ui/Skeleton";
+
 import { ROUTES } from "./routes";
 
 const CatalogPage = lazy(async () => {
@@ -25,11 +32,27 @@ const ProductPage = lazy(async () => {
   };
 });
 
+const AdminShell = lazy(async () => {
+  const module = await import("./features/admin-products/AdminShell");
+
+  return {
+    default: module.AdminShell,
+  };
+});
+
 const AdminProductsPage = lazy(async () => {
   const module = await import("./pages/AdminProductsPage");
 
   return {
     default: module.AdminProductsPage,
+  };
+});
+
+const AdminProductEditorPage = lazy(async () => {
+  const module = await import("./pages/AdminProductEditorPage");
+
+  return {
+    default: module.AdminProductEditorPage,
   };
 });
 
@@ -72,7 +95,19 @@ function App() {
           </Route>
 
           <Route element={<AdminRoute />}>
-            <Route path={ROUTES.admin} element={<AdminProductsPage />} />
+            <Route element={<AdminShell />}>
+              <Route path={ROUTES.admin} element={<AdminProductsPage />} />
+
+              <Route
+                path={ROUTES.adminProductNew}
+                element={<AdminProductEditorPage />}
+              />
+
+              <Route
+                path={ROUTES.adminProductEditPattern}
+                element={<AdminProductEditorPage />}
+              />
+            </Route>
           </Route>
         </Routes>
       </Suspense>

@@ -1,8 +1,12 @@
 export const ROUTES = {
   home: "/",
   admin: "/admin",
+  adminProductNew: "/admin/products/new",
+  adminProductEditPattern: "/admin/products/:id/edit",
 
   product: (id: number | string) => `/products/${id}`,
+
+  adminProductEdit: (id: number | string) => `/admin/products/${id}/edit`,
 } as const;
 
 export const SECTIONS = {

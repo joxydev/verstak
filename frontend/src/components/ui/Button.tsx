@@ -1,17 +1,8 @@
-import type {
-  ButtonHTMLAttributes,
-} from 'react';
+import { forwardRef, type ButtonHTMLAttributes } from "react";
 
-export type ButtonVariant =
-  | 'primary'
-  | 'secondary'
-  | 'quiet'
-  | 'danger';
+export type ButtonVariant = "primary" | "secondary" | "quiet" | "danger";
 
-export type ButtonSize =
-  | 'small'
-  | 'medium'
-  | 'large';
+export type ButtonSize = "small" | "medium" | "large";
 
 interface ButtonClassOptions {
   variant?: ButtonVariant;
@@ -21,47 +12,52 @@ interface ButtonClassOptions {
 }
 
 export function buttonClassName({
-  variant = 'primary',
-  size = 'medium',
+  variant = "primary",
+  size = "medium",
   block = false,
-  className = '',
+  className = "",
 }: ButtonClassOptions = {}): string {
   return [
-    'button',
+    "button",
     `button--${variant}`,
     `button--${size}`,
-    block ? 'button--block' : '',
+    block ? "button--block" : "",
     className,
   ]
     .filter(Boolean)
-    .join(' ');
+    .join(" ");
 }
 
-interface ButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   block?: boolean;
 }
 
-export function Button({
-  variant = 'primary',
-  size = 'medium',
-  block = false,
-  className,
-  type = 'button',
-  ...props
-}: ButtonProps) {
-  return (
-    <button
-      {...props}
-      type={type}
-      className={buttonClassName({
-        variant,
-        size,
-        block,
-        className,
-      })}
-    />
-  );
-}
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  function Button(
+    {
+      variant = "primary",
+      size = "medium",
+      block = false,
+      className,
+      type = "button",
+      ...props
+    },
+    ref,
+  ) {
+    return (
+      <button
+        {...props}
+        ref={ref}
+        type={type}
+        className={buttonClassName({
+          variant,
+          size,
+          block,
+          className,
+        })}
+      />
+    );
+  },
+);

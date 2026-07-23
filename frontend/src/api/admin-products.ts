@@ -19,10 +19,27 @@ interface ResolveImageResponse {
   resolvedUrl: string;
 }
 
-export async function getAdminProducts(): Promise<Product[]> {
+export async function getAdminProducts(
+  signal?: AbortSignal,
+): Promise<Product[]> {
   assertApiConfigured();
 
-  const response = await apiClient.get<Product[]>("/admin/products");
+  const response = await apiClient.get<Product[]>("/admin/products", {
+    signal,
+  });
+
+  return response.data;
+}
+
+export async function getAdminProduct(
+  id: number,
+  signal?: AbortSignal,
+): Promise<Product> {
+  assertApiConfigured();
+
+  const response = await apiClient.get<Product>(`/admin/products/${id}`, {
+    signal,
+  });
 
   return response.data;
 }
